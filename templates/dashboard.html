@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Email to Agenda</title>
+  <link rel="icon" href="https://ik.imagekit.io/UMMI/LOGO-removebg-preview.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg-dark-1: #07060a;
+      --bg-dark-2: #0f0812;
+      --neon: #b400ff;
+      --neon-2: rgba(0,200,255,0.85);
+      --panel-border: rgba(180,0,255,0.12);
+      --muted-white: rgba(255,255,255,0.94);
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1000px 600px at 10% 15%, rgba(180,0,255,0.08), transparent 12%),
+        linear-gradient(180deg, var(--bg-dark-1), var(--bg-dark-2));
+      color: var(--muted-white);
+      font-family: 'Poppins', sans-serif;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .background-ellipse {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 200vw;
+      height: 160vh;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 40% 40%, rgba(180,0,255,0.1), transparent 30%),
+        radial-gradient(ellipse at center, #07050a 0%, #120116 60%);
+      filter: blur(80px);
+      animation: rotate 40s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes rotate {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to   { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* Layout: panel and stats side by side */
+    .main-layout {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 20px;
+      width: 95%;
+      max-width: 1300px;
+      margin-top: 40px;
+      z-index: 2;
+    }
+
+    /* Main Panel */
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.18));
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--panel-border);
+      box-shadow: 0 10px 60px rgba(0,0,0,0.6);
+      border-radius: 18px;
+      flex: 1 1 700px;
+      padding: 32px;
+      animation: fadeIn 1s ease forwards;
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* Stats Panel */
+    .stats-panel {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(180,0,255,0.06);
+      border-radius: 12px;
+      padding: 28px;
+      flex: 0 1 300px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      backdrop-filter: blur(6px);
+      text-align: center;
+    }
+
+    .stats-title { font-size:1.3rem; margin-bottom:18px; font-weight:700; color:var(--muted-white); text-shadow: 0 0 8px rgba(180,0,255,0.18); }
+
+    .charts { display:flex; flex-direction:column; gap:24px; align-items:center; }
+
+    .chart-card { width:160px; display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .chart-canvas { width:140px; height:140px; position:relative; }
+    .chart-value {
+      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-weight:700; font-size:1.3rem; color:#fff;
+      text-shadow: 0 0 8px rgba(180,0,255,0.18);
+    }
+
+    /* Responsive */
+    @media (max-width: 880px) {
+      .main-layout { flex-direction: column; align-items: center; }
+      .panel, .stats-panel { width: 95%; }
+    }
+
+    .header-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+    .brand { display:flex; gap:16px; align-items:center; }
+    .logo {
+      width:80px; height:80px;
+      background: url('https://ik.imagekit.io/UMMI/LOGO-removebg-preview.png') center/cover no-repeat;
+      border-radius:14px;
+      box-shadow: 0 0 40px rgba(180,0,255,0.18);
+      animation: floatLogo 4s ease-in-out infinite;
+    }
+    @keyframes floatLogo { 0%,100% {transform:translateY(0)} 50% {transform:translateY(-8px)} }
+
+    .title { font-weight:700; font-size:clamp(20px,2vw,26px); }
+    .muted { font-size:13px; opacity:0.75; }
+
+    .tabs { display:flex; gap:14px; margin-bottom:20px; flex-wrap:wrap; }
+    .tab {
+      background: rgba(255,255,255,0.05);
+      border-radius:999px;
+      padding:10px 18px;
+      border:1px solid rgba(255,255,255,0.05);
+      cursor:pointer; font-weight:600;
+      transition: all .22s ease;
+    }
+    .tab:hover { transform:translateY(-4px); box-shadow: 0 0 20px rgba(180,0,255,0.18); }
+    .tab.active { background: linear-gradient(90deg, rgba(180,0,255,0.25), rgba(180,0,255,0.08)); border:1px solid var(--neon); box-shadow: 0 0 30px rgba(180,0,255,0.24); color: #fff; }
+
+    /* Email list scrollbar */
+    .list {
+      display:flex; flex-direction:column; gap:16px;
+      max-height:60vh; overflow-y:auto; padding-right:8px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(180,0,255,0.48) rgba(255,255,255,0.04);
+    }
+    .list::-webkit-scrollbar { width: 10px; }
+    .list::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 10px; }
+    .list::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, rgba(180,0,255,0.44), rgba(180,0,255,0.18));
+      border-radius: 10px; box-shadow: 0 0 10px rgba(180,0,255,0.24);
+    }
+    .list::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, rgba(180,0,255,0.85), rgba(180,0,255,0.28));
+    }
+
+    .email-card {
+      background: rgba(255,255,255,0.03);
+      border-radius:10px;
+      border:1px solid rgba(180,0,255,0.08);
+      padding:16px 18px;
+      transition: all .22s ease;
+      cursor: pointer;
+    }
+    .email-card:hover { transform: translateY(-5px); border-color: var(--neon); box-shadow: 0 0 30px rgba(180,0,255,0.12); }
+
+    .email-subject { font-weight:700; font-size:1.05rem; }
+    .email-body { max-height:0; opacity:0; overflow:hidden; transition: max-height .34s ease, opacity .34s ease; margin-top:8px; }
+    .email-card.active .email-body { max-height: 400px; opacity:1; }
+
+    .load-more-container { display:flex; justify-content:center; margin-top:20px; }
+    .load-more-btn {
+      background: linear-gradient(90deg, rgba(180,0,255,0.25), rgba(180,0,255,0.12));
+      border: 1px solid rgba(180,0,255,0.36);
+      color: #fff; padding:10px 22px; border-radius:12px; font-weight:600; cursor:pointer;
+      transition: all .22s ease; box-shadow: 0 6px 20px rgba(180,0,255,0.08);
+    }
+    .load-more-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(180,0,255,0.22); }
+  </style>
+</head>
+<body>
+  <div class="background-ellipse"></div>
+
+  <div class="main-layout">
+    <!-- MAIN PANEL -->
+    <div class="panel">
+      <div class="header-row">
+        <div class="brand">
+          <div class="logo"></div>
+          <div>
+            <div class="title">MailMind</div>
+            <div class="muted">A STUDENT BUILT MACHINE LEARNING PROJECT</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="showSection('all', this)">All Emails</div>
+        <div class="tab" onclick="showSection('event', this)">Event Emails</div>
+        <div class="tab" onclick="showSection('summary', this)">Summaries</div>
+      </div>
+
+      <div id="all" class="section">
+        <div class="list" id="emailsContainer">
+          {% for email in all_emails %}
+            <div class="email-card" onclick="toggleEmail(this)">
+              <div class="email-subject">{{ email.subject }}</div>
+              <div class="email-body">{{ email.body }}</div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="load-more-container">
+          <button id="loadMoreBtn" class="load-more-btn">Load More Emails</button>
+        </div>
+      </div>
+
+      <div id="event" class="section" style="display:none;">
+        <div class="list">
+          {% for email in event_emails %}
+          <div class="email-card">
+            <div class="email-subject">{{ email.subject }}</div>
+            <div><strong>Title:</strong> {{ email.title }}</div>
+            <div><strong>Date:</strong> {{ email.date }}</div>
+            <div><strong>Time:</strong> {{ email.start_time }} - {{ email.end_time }}</div>
+            <div><strong>Location:</strong> {{ email.location }}</div>
+            {% if email.cal_link %}
+            <div style="margin-top:8px;text-align:right;">
+              <a href="{{ email.cal_link }}" target="_blank" class="load-more-btn" style="padding:6px 14px;font-size:13px;">
+                <i class="fa-solid fa-calendar-alt"></i> View in Calendar
+              </a>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div id="summary" class="section" style="display:none;">
+        <div class="list">
+          {% for email in summary_emails %}
+            <div class="email-card" onclick="toggleEmail(this)">
+              <div class="email-subject">{{ email.subject }}</div>
+              <div class="email-body">{{ email.summary }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS PANEL -->
+    <div class="stats-panel">
+      <div class="stats-title">Dashboard Stats</div>
+      <div class="charts">
+        <div class="chart-card">
+          <div class="chart-canvas">
+            <canvas id="chartFetched"></canvas>
+            <div id="valFetched" class="chart-value">0</div>
+          </div>
+          <div>Fetched Emails</div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-canvas">
+            <canvas id="chartEvent"></canvas>
+            <div id="valEvent" class="chart-value">0</div>
+          </div>
+          <div>Event Emails</div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-canvas">
+            <canvas id="chartSummary"></canvas>
+            <div id="valSummary" class="chart-value">0</div>
+          </div>
+          <div>Summaries</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleEmail(c){c.classList.toggle('active');}
+    function showSection(id, el){
+      document.querySelectorAll('.section').forEach(s=>s.style.display='none');
+      document.getElementById(id).style.display='block';
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    const stats = {
+      fetched: {{ (all_emails|length if all_emails is defined else 0) | tojson }},
+      event: {{ (event_emails|length if event_emails is defined else 0) | tojson }},
+      summary: {{ (summary_emails|length if summary_emails is defined else 0) | tojson }}
+    };
+    const total = Math.max(1, stats.fetched + stats.event + stats.summary);
+
+    function animateCount(el, from, to, duration=1000){
+      const start=performance.now();
+      function step(now){
+        const t=Math.min(1,(now-start)/duration);
+        el.textContent=Math.floor(from+(to-from)*(1-Math.pow(1-t,3)));
+        if(t<1)requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function makeDonut(id,value,color){
+      const ctx=document.getElementById(id).getContext('2d');
+      const pct=value/total*100;
+      return new Chart(ctx,{
+        type:'doughnut',
+        data:{
+          datasets:[{
+            data:[pct,100-pct],
+            backgroundColor:[color,'rgba(255,255,255,0.06)'],
+            borderWidth:0
+          }]
+        },
+        options:{
+          responsive:true,
+          cutout:'75%',
+          plugins:{legend:{display:false},tooltip:{enabled:false}},
+          animation:{duration:1200,easing:'easeOutCubic'}
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded',()=>{
+      makeDonut('chartFetched',stats.fetched,'rgba(180,0,255,0.9)');
+      makeDonut('chartEvent',stats.event,'rgba(0,200,255,0.9)');
+      makeDonut('chartSummary',stats.summary,'rgba(255,80,160,0.9)');
+      animateCount(document.getElementById('valFetched'),0,stats.fetched);
+      animateCount(document.getElementById('valEvent'),0,stats.event);
+      animateCount(document.getElementById('valSummary'),0,stats.summary);
+    });
+  </script>
+</body>
+</html>
