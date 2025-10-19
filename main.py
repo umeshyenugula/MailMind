@@ -332,7 +332,9 @@ def fetch_more_emails():
         "next_page_token": next_page_token
     })
 
-
+@app.route("/privacy-policy")
+def pp():
+    return render_template("privacy.html")
 # -------------------- Entrypoint --------------------
 if __name__ == "__main__":
   
