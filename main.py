@@ -232,7 +232,7 @@ def oauthcallback():
 
     # Immediate fetch so user sees emails right away
     try:
-        fetch.fetch.get_unread_emails(creds, user_id, limit=10, verbose=True)
+        fetch.get_unread_emails(creds, user_id, limit=10, verbose=True)
     except Exception as e:
         print(f"[WARN] Immediate fetch failed: {e}")
 
