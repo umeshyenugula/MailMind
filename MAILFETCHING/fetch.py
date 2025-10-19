@@ -20,7 +20,7 @@ load_dotenv()
 
 MONGO_URI = os.getenv("mongo_uri")
 CLIENT_SECRETS_FILE = os.getenv("CLIENT_SECRETS_FILE", "credentials.json")
-REDIRECT_URI = os.getenv("REDIRECT_URI", "http://localhost:5000/oauth2callback")
+REDIRECT_URI = os.getenv("REDIRECT_URI", "https://mailmind-q3lx.onrender.com/oauth2callback")
 
 SCOPES = [
     'https://www.googleapis.com/auth/gmail.modify',
