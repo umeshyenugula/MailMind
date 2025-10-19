@@ -4,7 +4,6 @@ import pickle
 import datetime
 from threading import Thread
 from flask import Flask, render_template, session, request, redirect, url_for, jsonify
-from flask_session import Session
 from pymongo import MongoClient
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
